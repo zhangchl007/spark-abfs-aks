@@ -1,47 +1,79 @@
-# Spark ABFS driver on AKS
+# Spark ABFS Driver on AKS
 
-This is Java application that reads data from Azure Blob Storage (ABFS) using Spark on Azure Kubernetes Service (AKS).
+This project provides a Makefile to manage the build, deployment, and logging of a Spark ABFS driver on Azure Kubernetes Service (AKS).
 
+## Prerequisites
 
-## build jar
+- Maven
+- Docker
+- Azure CLI
+- Kubernetes CLI (kubectl)
+- Python 3
 
-```
-mvn clean install
+## Setup
 
-```
-## build docker image
+1. Clone the repository:
+    ```sh
+    git clone <repository-url>
+    cd <repository-directory>
+    ```
 
-```
-cp target/SparkABFSDemo-1.0-SNAPSHOT.jar deploy/spark-docker
-cd deploy/spark-docker
-docker build -t zhangchl007/sparkcachedemo:v3.4.2 .
-docker push zhangchl007/sparkcachedemo:v3.4.2
+2. Set the required environment variables:
+    ```sh
+    export STORAGE_ACCOUNT=<your-storage-account>
+    export STORAGE_CONTAINER=<your-container-name>
+    export AZURE_CLIENT_ID=<your-azure-client-id>
+    ```
 
-```
+## Usage
 
-## upload jar to Azure Blob Storage
+The Makefile provides several targets to manage the project. Below are the available commands:
 
-```
-az storage blob upload --account-name <storage-account-name> --container-name <container-name> --name <jar-name> --file target/SparkABFSDemo-1.0-SNAPSHOT.jar --auth-mode login
+### Build and Deploy
 
-# or upload the jar to the container using uploadfile.py with managed identity
+- **all**: Builds the JAR, Docker image, uploads the JAR to Azure Blob Storage, and deploys the application to AKS.
+    ```sh
+    make all
+    ```
 
-export AZURE_STORAGE_ACCOUNT=<storage-account-name>
-export AZURE_STORAGE_CONTAINER=<container-name>
-export AZURE_CLIENT_ID=<client-id>
+### Individual Steps
 
-```
-## Deploy Java Spark application on AKS
+- **clean**: Cleans the Maven build and removes the `target` directory.
+    ```sh
+    make clean
+    ```
 
-```
+- **build-jar**: Builds the JAR file using Maven.
+    ```sh
+    make build-jar
+    ```
 
-kubectl apply -f deploy/spark-docker/spark-driver.yaml
+- **build-docker**: Copies the JAR file to the Docker deployment directory, builds the Docker image, and pushes it to the specified Docker registry.
+    ```sh
+    make build-docker
+    ```
 
-```
+- **upload-jar**: Uploads the JAR file to Azure Blob Storage.
+    ```sh
+    make upload-jar
+    ```
 
-## Check the logs
+- **upload-file**: Uploads additional files using a Python script.
+    ```sh
+    make upload-file
+    ```
 
-```
-kubectl logs -f spark-driver-<driver-id>
+- **deploy**: Deploys the application to AKS using the Kubernetes configuration file.
+    ```sh
+    make deploy
+    ```
 
-```
+- **check-logs**: Checks the logs of the Spark driver pod.
+    ```sh
+    make check-logs
+    ```
+
+## Notes
+
+- Ensure that you have logged in to Azure CLI and have the necessary permissions to upload to Azure Blob Storage and deploy to AKS.
+- Replace `<driver-id>` in the `check-logs` target with the actual driver ID of your Spark driver pod.
