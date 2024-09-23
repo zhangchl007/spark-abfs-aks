@@ -1,0 +1,102 @@
+apiVersion: "sparkoperator.k8s.io/v1beta2"
+kind: SparkApplication
+metadata:
+  labels:
+    azure.workload.identity/use: "true"
+  name: sparkabfsdemo
+  namespace: default
+spec:
+  type: Scala
+  mode: cluster
+  image: "zhangchl007/sparkcachedemo:v3.4.2"
+  imagePullPolicy: Always
+  mainClass: com.example.SparkABFSDemo
+  mainApplicationFile: "abfs://abfs01@tfdemotfstate3645.dfs.core.windows.net/java/SparkABFSDemo-1.0-SNAPSHOT.jar"
+  sparkVersion: "3.4.2"
+  sparkUIOptions:
+    serviceLabels:
+      test-label/v1: 'true'
+  restartPolicy:
+    type: Never
+  
+  sparkConf:
+    # Define the OAuth settings and Workload Identity for ABFS
+    "spark.hadoop.fs.azure.account.auth.type": "OAuth"
+    "spark.hadoop.fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.WorkloadIdentityTokenProvider"
+    "spark.hadoop.fs.azure.account.oauth2.msi.tenant": "${env.AZURE_TENANT_ID}"
+    "spark.hadoop.fs.azure.account.oauth2.client.id": "${env.AZURE_CLIENT_ID}"
+    "spark.hadoop.fs.azure.account.oauth2.token.file": "${env.AZURE_FEDERATED_TOKEN_FILE}"
+
+  volumes:
+    - name: "test-volume"
+      hostPath:
+        path: "/tmp"
+        type: Directory
+  driver:
+    tolerations:
+    - key: "kubernetes.azure.com/scalesetpriority"
+      operator: "Equal"
+      value: "spot"
+      effect: "NoSchedule"
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key:  agentpool
+              operator: In
+              values:
+              - ondemandpool
+    cores: 8
+    coreLimit: "8100m"
+    memory: "61440m"
+    labels:
+      version: 3.4.2
+    serviceAccount: "workload-identity-sa"
+    volumeMounts:
+      - name: "test-volume"
+        mountPath: "/tmp"
+    env:
+      - name: STORAGE_ACCOUNT_NAME
+        value: "tfdemotfstate3645"
+      - name: CONTAINER_NAME
+        value: "abfs01"
+  executor:
+    tolerations:
+    - key: "kubernetes.azure.com/scalesetpriority"
+      operator: "Equal"
+      value: "spot"
+      effect: "NoSchedule"
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 99
+          preference:
+            matchExpressions:
+            - key: kubernetes.azure.com/scalesetpriority
+              operator: In
+              values:
+              - spot
+        - weight: 1
+          preference:
+            matchExpressions:
+            - key: kubernetes.io/arch
+              operator: In
+              values:
+              - amd64
+    cores: 2
+    instances: 200
+    memory: "10240m"
+    labels:
+      version: 3.4.2
+      azure.workload.identity/use: "true"
+    volumeMounts:
+      - name: "test-volume"
+        mountPath: "/tmp"
+    env:
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.name
+  deps:
+    jars: []

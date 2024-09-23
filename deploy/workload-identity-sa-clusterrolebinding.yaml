@@ -1,0 +1,22 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
+    helm.sh/hook-delete-policy: hook-failed, before-hook-creation
+    helm.sh/hook-weight: "-10"
+  labels:
+    app.kubernetes.io/instance: my-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: spark-operator
+    app.kubernetes.io/version: v1beta2-1.4.4-3.5.0
+    helm.sh/chart: spark-operator-1.2.13
+  name: workload-identity-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: workload-identity-sa
+subjects:
+- kind: ServiceAccount
+  name: workload-identity-sa
+  namespace: default
