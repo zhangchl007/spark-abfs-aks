@@ -14,8 +14,8 @@ This project provides a Makefile to manage the build, deployment, and logging of
 
 1. Clone the repository:
     ```sh
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone https://github.com/zhangchl007/spark-abfs-aks
+    cd spark-abfs-aks
     ```
 
 2. Set the required environment variables:
