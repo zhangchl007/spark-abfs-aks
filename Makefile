@@ -30,7 +30,7 @@ upload-file:
 	python3 deploy/uploadfile.py
 
 deploy:
-	kubectl apply -f deploy/spark-docker/spark-driver.yaml
+	kubectl apply -f deploy/abfs-spark.yaml
 
 check-logs:
 	kubectl logs -f spark-driver-<driver-id>

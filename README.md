@@ -77,3 +77,5 @@ The Makefile provides several targets to manage the project. Below are the avail
 
 - Ensure that you have logged in to Azure CLI and have the necessary permissions to upload to Azure Blob Storage and deploy to AKS.
 - Replace `<driver-id>` in the `check-logs` target with the actual driver ID of your Spark driver pod.
+- The `upload-file` target uses a Python script to upload additional files to Azure Blob Storage. You can modify the script to upload other files as needed.
+- workload identiy is used to access the Azure Blob Storage. The managed identity must have the necessary permissions to access the storage account.
